@@ -1,5 +1,27 @@
 workflows:
-    sample-workflow:
-        name: Codemagic Sample Workflow
-        max_build_duration: 120
-        instance_type: mac_mini_m1
+  ios:
+    name: iOS Workflow
+    environment:
+      node: latest
+      xcode: latest
+      cocoapods: default
+      flutter: stable
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install
+          cd ios
+          pod install
+          cd ..
+      - name: Build iOS
+        script: |
+          xcodebuild -workspace ios/YourApp.xcworkspace -scheme YourApp -sdk iphoneos -configuration Release archive -archivePath $HOME/Library/Developer/Xcode/Archives/$(date +'%Y-%m-%d')/YourApp.xcarchive
+      - name: Export IPA
+        script: |
+          xcodebuild -exportArchive -archivePath $HOME/Library/Developer/Xcode/Archives/$(date +'%Y-%m-%d')/YourApp.xcarchive -exportPath $HOME/Library/Developer/Xcode/Archives/$(date +'%Y-%m-%d')/YourApp.ipa -exportOptionsPlist ios/exportOptions.plist
+    publishing:
+      email:
+        recipients:
+          - kchafekanade@gmail.com
+      files:
+        - $HOME/Library/Developer/Xcode/Archives/$(date +'%Y-%m-%d')/YourApp.ipa/*.ipa
